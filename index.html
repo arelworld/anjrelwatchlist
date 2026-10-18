@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>anjrel.mp4hehe</title>
+  <title>anjrel.mp4</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -68,16 +68,10 @@
       font-weight: 600;
       color: var(--accent-text);
       letter-spacing: -0.5px;
-      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 8px;
       user-select: none;
-      transition: opacity 0.2s;
-    }
-
-    .app-title:hover {
-      opacity: 0.8;
     }
 
     .status-dot {
@@ -322,50 +316,6 @@
       font-size: 13px;
     }
 
-    /* Modal Styling */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s;
-    }
-
-    .modal-overlay.active {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    .modal-card {
-      background: var(--surface-color);
-      border-radius: 10px;
-      padding: 20px;
-      width: 100%;
-      max-width: 420px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: flex-column;
-      gap: 14px;
-    }
-
-    .modal-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--accent-text);
-    }
-
-    .modal-actions {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-top: 10px;
-    }
-
     /* Responsive */
     @media (max-width: 768px) {
       body { padding: 12px 8px; }
@@ -377,9 +327,9 @@
 <body>
 
   <div class="app-container">
-    <!-- Header Title (Click to toggle Supabase Modal) -->
+    <!-- Header Title -->
     <header>
-      <div class="app-title" id="titleBtn">
+      <div class="app-title">
         anjrel.mp4
         <span class="status-dot" id="statusDot"></span>
       </div>
@@ -456,50 +406,23 @@
     </div>
   </div>
 
-  <!-- Hidden Connection Settings Modal -->
-  <div class="modal-overlay" id="configModal">
-    <div class="modal-card">
-      <div class="modal-title">Supabase Credentials</div>
-      <p style="font-size: 11px; color: var(--text-muted);">
-        Enter your credentials to sync across devices live.
-      </p>
-      
-      <div>
-        <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Project URL</label>
-        <input type="text" id="sbUrl" class="form-input" style="width:100%;" placeholder="https://xyz.supabase.co" />
-      </div>
-
-      <div>
-        <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px;">Anon Public Key</label>
-        <input type="text" id="sbKey" class="form-input" style="width:100%;" placeholder="eyJh..." />
-      </div>
-
-      <div class="modal-actions">
-        <button type="button" class="btn" id="closeModalBtn">Cancel</button>
-        <button type="button" class="btn btn-submit" id="saveConfigBtn">Save & Sync</button>
-      </div>
-    </div>
-  </div>
-
   <script>
+    // Hardcoded Supabase Credentials
+    const SUPABASE_URL = "https://ziqgknxgdmkkcacwbbqz.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppcWdrbnhnZG1ra2NhY3diYnF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMzg4ODksImV4cCI6MjEwNzkxNDg4OX0.cfdK306XrPS5B7aVTc2Uux9HAhvmVw3jwD3GHff7ovs";
+
     // State Variables
     let supabaseClient = null;
     let watchlistData = [];
     let currentFilter = 'All';
 
     // DOM Elements
-    const titleBtn = document.getElementById('titleBtn');
     const statusDot = document.getElementById('statusDot');
     const tableBody = document.getElementById('tableBody');
     const emptyState = document.getElementById('emptyState');
     const addForm = document.getElementById('addForm');
     const searchInput = document.getElementById('searchInput');
     const filterGroup = document.getElementById('filterGroup');
-    const configModal = document.getElementById('configModal');
-    const closeModalBtn = document.getElementById('closeModalBtn');
-    const saveConfigBtn = document.getElementById('saveConfigBtn');
-    const sbUrlInput = document.getElementById('sbUrl');
-    const sbKeyInput = document.getElementById('sbKey');
 
     // Popular Genres & Score Options
     const GENRES = ['Action', 'Comedy', 'Drama', 'Horror', 'Romance', 'Sci-Fi', 'Thriller', 'Fantasy', 'Slice of Life', 'Animation', 'Mystery', 'Other'];
@@ -514,23 +437,16 @@
 
     // Supabase Connection Init
     function initSupabase() {
-      const storedUrl = localStorage.getItem('anjrel_sb_url');
-      const storedKey = localStorage.getItem('anjrel_sb_key');
-
-      if (storedUrl && storedKey) {
-        try {
-          supabaseClient = window.supabase.createClient(storedUrl, storedKey);
-          statusDot.classList.add('connected');
-          sbUrlInput.value = storedUrl;
-          sbKeyInput.value = storedKey;
-        } catch (err) {
-          console.error("Supabase init error:", err);
-          statusDot.classList.remove('connected');
-        }
+      try {
+        supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        statusDot.classList.add('connected');
+      } catch (err) {
+        console.error("Supabase init error:", err);
+        statusDot.classList.remove('connected');
       }
     }
 
-    // Load Data (Remote or Local)
+    // Load Data (Remote or Local Fallback)
     async function loadData() {
       if (supabaseClient) {
         try {
@@ -704,7 +620,6 @@
     // Listeners
     function setupEventListeners() {
       addForm.addEventListener('submit', addItem);
-      
       searchInput.addEventListener('input', renderTable);
 
       filterGroup.addEventListener('click', (e) => {
@@ -714,33 +629,6 @@
           currentFilter = e.target.getAttribute('data-filter');
           renderTable();
         }
-      });
-
-      // Title click opens hidden modal
-      titleBtn.addEventListener('click', () => {
-        configModal.classList.add('active');
-      });
-
-      closeModalBtn.addEventListener('click', () => {
-        configModal.classList.remove('active');
-      });
-
-      saveConfigBtn.addEventListener('click', () => {
-        const url = sbUrlInput.value.trim();
-        const key = sbKeyInput.value.trim();
-
-        if (url && key) {
-          localStorage.setItem('anjrel_sb_url', url);
-          localStorage.setItem('anjrel_sb_key', key);
-          initSupabase();
-          loadData();
-        } else {
-          localStorage.removeItem('anjrel_sb_url');
-          localStorage.removeItem('anjrel_sb_key');
-          supabaseClient = null;
-          statusDot.classList.remove('connected');
-        }
-        configModal.classList.remove('active');
       });
     }
   </script>
